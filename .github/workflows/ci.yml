@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: literacy_platform_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d literacy_platform_ci"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      NODE_ENV: test
+      PORT: 3000
+      APP_TIMEZONE: Asia/Almaty
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/literacy_platform_ci?schema=public
+      JWT_ACCESS_SECRET: ci_access_secret
+      JWT_REFRESH_SECRET: ci_refresh_secret
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres -d literacy_platform_ci; do
+            sleep 2
+          done
+
+      - name: Run Prisma migrations
+        run: npx prisma migrate deploy
+
+      - name: Lint
+        run: npm run lint:check
+
+      - name: Run tests with coverage
+        run: npm run test:cov -- --runInBand
+
+      - name: Build project
+        run: npm run build
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage

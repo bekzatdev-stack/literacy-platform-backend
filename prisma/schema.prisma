@@ -1,0 +1,304 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  PARENT
+  ADMIN
+}
+
+enum LessonStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum ExerciseType {
+  PHONICS
+  HANDWRITING
+  SIGHT_WORDS
+  VOCABULARY
+}
+
+enum LessonProgressStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum NotificationType {
+  LESSON_COMPLETED
+  BADGE_AWARDED
+  STREAK_RISK
+  WEEKLY_SUMMARY
+  SYSTEM
+}
+
+enum AdminAction {
+  CREATE
+  UPDATE
+  PUBLISH
+  UNPUBLISH
+  DELETE
+}
+
+enum ContentEntityType {
+  UNIT
+  LESSON
+  EXERCISE
+  BADGE
+}
+
+enum RefreshTokenOwnerType {
+  USER
+  CHILD
+}
+
+model User {
+  id            String             @id @default(uuid()) @db.Uuid
+  email         String             @unique
+  passwordHash  String
+  firstName     String
+  lastName      String?
+  role          UserRole
+  isActive      Boolean            @default(true)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  children      ChildProfile[]
+  notifications Notification[]
+  refreshTokens RefreshToken[]
+  adminLogs     AdminActivityLog[]
+
+  @@index([role])
+}
+
+model ChildProfile {
+  id                     String               @id @default(uuid()) @db.Uuid
+  parentId               String               @db.Uuid
+  username               String               @unique
+  pinHash                String
+  displayName            String
+  age                    Int
+  avatarUrl              String?
+  currentCurriculumLevel Int                  @default(1)
+  gamificationLevel      Int                  @default(1)
+  xpPoints               Int                  @default(0)
+  streakCount            Int                  @default(0)
+  overallProgressPercent Decimal              @default(0) @db.Decimal(5, 2)
+  lastActiveAt           DateTime?
+  streakUpdatedAt        DateTime?
+  isActive               Boolean              @default(true)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  parent                 User                 @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  lessonProgressRecords  LessonProgress[]
+  exerciseSubmissions    ExerciseSubmission[]
+  badgeAwards            ChildBadge[]
+  notifications          Notification[]
+  refreshTokens          RefreshToken[]
+
+  @@index([parentId])
+  @@index([age])
+  @@index([xpPoints])
+}
+
+model Unit {
+  id                      String    @id @default(uuid()) @db.Uuid
+  slug                    String    @unique
+  title                   String
+  titleTranslations       Json
+  description             String?
+  descriptionTranslations Json?
+  curriculumLevel         Int
+  orderIndex              Int
+  isPublished             Boolean   @default(false)
+  createdById             String?   @db.Uuid
+  updatedById             String?   @db.Uuid
+  publishedAt             DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  lessons                 Lesson[]
+
+  @@unique([curriculumLevel, orderIndex])
+  @@index([isPublished])
+}
+
+model Lesson {
+  id                       String               @id @default(uuid()) @db.Uuid
+  unitId                   String               @db.Uuid
+  slug                     String               @unique
+  title                    String
+  titleTranslations        Json
+  instructions             String?
+  instructionsTranslations Json?
+  lessonType               ExerciseType
+  difficulty               DifficultyLevel
+  orderIndex               Int
+  xpReward                 Int                  @default(10)
+  status                   LessonStatus         @default(DRAFT)
+  createdById              String?              @db.Uuid
+  updatedById              String?              @db.Uuid
+  publishedAt              DateTime?
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+  unit                     Unit                 @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  exercises                Exercise[]
+  lessonProgressRecords    LessonProgress[]
+  exerciseSubmissions      ExerciseSubmission[]
+
+  @@unique([unitId, orderIndex])
+  @@index([unitId, status])
+  @@index([lessonType, difficulty])
+}
+
+model Exercise {
+  id                       String               @id @default(uuid()) @db.Uuid
+  lessonId                 String               @db.Uuid
+  type                     ExerciseType
+  difficulty               DifficultyLevel
+  orderIndex               Int
+  prompt                   String
+  promptTranslations       Json
+  instructions             String?
+  instructionsTranslations Json?
+  content                  Json
+  correctAnswer            Json?
+  createdById              String?              @db.Uuid
+  updatedById              String?              @db.Uuid
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+  lesson                   Lesson               @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  submissions              ExerciseSubmission[]
+
+  @@unique([lessonId, orderIndex])
+  @@index([lessonId, type])
+}
+
+model LessonProgress {
+  id                      String               @id @default(uuid()) @db.Uuid
+  childId                 String               @db.Uuid
+  lessonId                String               @db.Uuid
+  status                  LessonProgressStatus @default(IN_PROGRESS)
+  completedExercisesCount Int                  @default(0)
+  totalExercisesCount     Int                  @default(0)
+  startedAt               DateTime?
+  completedAt             DateTime?
+  lastSubmittedAt         DateTime?
+  earnedXp                Int                  @default(0)
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  child                   ChildProfile         @relation(fields: [childId], references: [id], onDelete: Cascade)
+  lesson                  Lesson               @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, lessonId])
+  @@index([childId, status])
+}
+
+model ExerciseSubmission {
+  id               String       @id @default(uuid()) @db.Uuid
+  childId          String       @db.Uuid
+  lessonId         String       @db.Uuid
+  exerciseId       String       @db.Uuid
+  answer           Json?
+  isCorrect        Boolean
+  timeTakenSeconds Int
+  attemptNumber    Int          @default(1)
+  submittedAt      DateTime     @default(now())
+  child            ChildProfile @relation(fields: [childId], references: [id], onDelete: Cascade)
+  lesson           Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  exercise         Exercise     @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@index([childId, submittedAt])
+  @@index([exerciseId, childId])
+  @@index([lessonId, childId])
+}
+
+model Badge {
+  id                        String       @id @default(uuid()) @db.Uuid
+  code                      String       @unique
+  name                      String
+  nameTranslations          Json
+  description               String
+  descriptionTranslations   Json
+  iconUrl                   String?
+  xpThreshold               Int?
+  streakThreshold           Int?
+  lessonCompletionThreshold Int?
+  unitCompletionThreshold   Int?
+  isActive                  Boolean      @default(true)
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @updatedAt
+  awards                    ChildBadge[]
+}
+
+model ChildBadge {
+  id        String       @id @default(uuid()) @db.Uuid
+  childId   String       @db.Uuid
+  badgeId   String       @db.Uuid
+  awardedAt DateTime     @default(now())
+  child     ChildProfile @relation(fields: [childId], references: [id], onDelete: Cascade)
+  badge     Badge        @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, badgeId])
+  @@index([childId, awardedAt])
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  parentId  String           @db.Uuid
+  childId   String?          @db.Uuid
+  type      NotificationType
+  title     String
+  message   String
+  payload   Json?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+  parent    User             @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  child     ChildProfile?    @relation(fields: [childId], references: [id], onDelete: SetNull)
+
+  @@index([parentId, isRead, createdAt])
+  @@index([childId, createdAt])
+}
+
+model RefreshToken {
+  id        String                @id @default(uuid()) @db.Uuid
+  userId    String?               @db.Uuid
+  childId   String?               @db.Uuid
+  ownerType RefreshTokenOwnerType
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime              @default(now())
+  user      User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  child     ChildProfile?         @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([childId])
+  @@index([expiresAt])
+}
+
+model AdminActivityLog {
+  id         String            @id @default(uuid()) @db.Uuid
+  adminId    String            @db.Uuid
+  action     AdminAction
+  entityType ContentEntityType
+  entityId   String
+  beforeData Json?
+  afterData  Json?
+  createdAt  DateTime          @default(now())
+  admin      User              @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId, createdAt])
+  @@index([entityType, entityId])
+}
