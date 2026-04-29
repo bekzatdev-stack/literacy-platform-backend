@@ -1,3 +1,5 @@
+[![CI](https://github.com/bekzatdev-stack/literacy-platform-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/bekzatdev-stack/literacy-platform-backend/actions/workflows/ci.yml)
+
 # Children's Literacy Learning Platform Backend
 
 Production-style backend for a Duolingo ABC-inspired children's literacy platform. The system supports parent onboarding, child profiles, curriculum management, progress tracking, gamification, notifications, admin analytics, and scheduled background jobs.
