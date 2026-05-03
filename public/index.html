@@ -3,211 +3,258 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Literacy Platform Demo</title>
+    <title>Literacy Platform</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <div class="page-shell">
-      <header class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">Children's Literacy Learning Platform</p>
-          <h1>Backend Demo Console</h1>
-          <p class="hero-text">
-            A lightweight frontend for demonstrating the parent, admin, and
-            learner flow on top of the NestJS API.
-          </p>
-          <div class="hero-links">
-            <a class="ghost-link" href="/api/docs" target="_blank" rel="noreferrer">
-              Open Swagger
-            </a>
-            <button id="health-check" class="secondary-button">
-              Check API Health
-            </button>
+    <div class="site-shell">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <span class="brand-mark">LP</span>
+          <div>
+            <p class="brand-kicker">Children's Literacy Learning Platform</p>
+            <h1>Family Literacy Hub</h1>
           </div>
         </div>
-        <div class="hero-status">
-          <div class="status-card">
-            <span class="status-label">API Base</span>
-            <strong>/api/v1</strong>
-          </div>
-          <div class="status-card">
-            <span class="status-label">Auth State</span>
-            <strong id="auth-state">No token selected</strong>
-          </div>
-        </div>
+        <nav class="topbar-links">
+          <a href="#workspace">Demo Workspace</a>
+          <a href="/api/docs" target="_blank" rel="noreferrer">API Docs</a>
+        </nav>
       </header>
 
-      <main class="dashboard">
-        <section class="panel">
-          <div class="panel-header">
-            <h2>1. Parent Authentication</h2>
-            <p>Create or log in a parent account and store its access token.</p>
+      <main>
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Reading journeys for children, visibility for parents, control for admins</p>
+            <h2>A simple frontend for showing the full learning flow.</h2>
+            <p class="hero-text">
+              This page demonstrates how the backend powers registration, child profiles,
+              curriculum creation, lesson completion, rewards, and notifications in one place.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-link" href="#workspace">Open Demo Workspace</a>
+              <button id="health-check" class="secondary-button">Check API Health</button>
+            </div>
           </div>
-          <div class="grid two-columns">
-            <form id="parent-register-form" class="card form-card">
-              <h3>Register Parent</h3>
-              <label>Email<input name="email" type="email" value="parent.demo@example.com" required /></label>
-              <label>Password<input name="password" type="password" value="SecurePass123" required /></label>
-              <label>First Name<input name="firstName" type="text" value="Aruzhan" required /></label>
-              <label>Last Name<input name="lastName" type="text" value="Bekova" required /></label>
-              <button type="submit">Register Parent</button>
-            </form>
 
-            <form id="parent-login-form" class="card form-card">
-              <h3>Login Parent</h3>
-              <label>Email<input name="email" type="email" value="parent.demo@example.com" required /></label>
-              <label>Password<input name="password" type="password" value="SecurePass123" required /></label>
-              <button type="submit">Login Parent</button>
-            </form>
-          </div>
+          <aside class="hero-panel">
+            <div class="metric-card">
+              <span class="metric-label">API Base</span>
+              <strong>/api/v1</strong>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Current Session</span>
+              <strong id="auth-state">No token selected</strong>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Interactive Docs</span>
+              <strong>/api/docs</strong>
+            </div>
+          </aside>
         </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <h2>2. Admin Authentication</h2>
-            <p>Use the seeded admin to create curriculum content.</p>
-          </div>
-          <form id="admin-login-form" class="card form-card compact">
-            <label>Email<input name="email" type="email" value="admin@example.com" required /></label>
-            <label>Password<input name="password" type="password" value="AdminPass123" required /></label>
-            <button type="submit">Login Admin</button>
-          </form>
+        <section class="overview-grid">
+          <article class="overview-card warm">
+            <h3>For Parents</h3>
+            <p>Create learner profiles, follow progress, and receive milestone notifications.</p>
+          </article>
+          <article class="overview-card cool">
+            <h3>For Children</h3>
+            <p>Move through lessons, earn XP, build streaks, and unlock badges.</p>
+          </article>
+          <article class="overview-card sand">
+            <h3>For Admins</h3>
+            <p>Manage curriculum content, publish learning materials, and monitor platform activity.</p>
+          </article>
         </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <h2>3. Child Profile</h2>
-            <p>Create a learner profile under the active parent account.</p>
+        <section id="workspace" class="workspace">
+          <div class="section-heading">
+            <p class="eyebrow">Demo Workspace</p>
+            <h2>Run the backend flow through a cleaner frontend</h2>
+            <p>
+              The blocks below follow the same real scenario that is demonstrated in Swagger:
+              parent auth, child creation, admin content setup, learner progress, and platform updates.
+            </p>
           </div>
-          <form id="child-form" class="card form-card wide">
+
+          <section class="workspace-block">
+            <div class="block-heading">
+              <h3>1. Parent Access</h3>
+              <p>Register a new parent account or log in to an existing one.</p>
+            </div>
             <div class="grid two-columns">
-              <label>Username<input name="username" type="text" value="ali_reader_demo" required /></label>
-              <label>PIN<input name="pin" type="text" value="1234" required /></label>
-              <label>Display Name<input name="displayName" type="text" value="Ali" required /></label>
-              <label>Age<input name="age" type="number" value="6" min="3" max="12" required /></label>
-              <label>Avatar URL<input name="avatarUrl" type="url" value="https://example.com/avatar.png" /></label>
-              <label>Learning Level<input name="learningLevel" type="number" value="1" min="1" required /></label>
+              <form id="parent-register-form" class="surface-card form-card">
+                <h4>Create Parent Account</h4>
+                <label>Email<input name="email" type="email" value="parent.demo@example.com" required /></label>
+                <label>Password<input name="password" type="password" value="SecurePass123" required /></label>
+                <label>First Name<input name="firstName" type="text" value="Aruzhan" required /></label>
+                <label>Last Name<input name="lastName" type="text" value="Bekova" required /></label>
+                <button type="submit">Register Parent</button>
+              </form>
+
+              <form id="parent-login-form" class="surface-card form-card">
+                <h4>Sign In as Parent</h4>
+                <label>Email<input name="email" type="email" value="parent.demo@example.com" required /></label>
+                <label>Password<input name="password" type="password" value="SecurePass123" required /></label>
+                <button type="submit">Login Parent</button>
+              </form>
             </div>
-            <button type="submit">Create Child</button>
-          </form>
-        </section>
+          </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <h2>4. Curriculum Content</h2>
-            <p>Create one unit, one lesson, and one exercise under the admin token.</p>
-          </div>
-          <div class="grid three-columns">
-            <form id="unit-form" class="card form-card">
-              <h3>Create Unit</h3>
-              <label>Slug<input name="slug" type="text" value="phonics-level-1-demo" required /></label>
-              <label>Title<input name="title" type="text" value="Phonics Level 1" required /></label>
-              <label>Description<textarea name="description" rows="3">Introduction to phonics</textarea></label>
-              <label>Curriculum Level<input name="curriculumLevel" type="number" value="1" min="1" required /></label>
-              <label>Order Index<input name="orderIndex" type="number" value="1" min="1" required /></label>
-              <label class="checkbox"><input name="isPublished" type="checkbox" checked />Published</label>
-              <button type="submit">Create Unit</button>
-            </form>
-
-            <form id="lesson-form" class="card form-card">
-              <h3>Create Lesson</h3>
-              <label>Slug<input name="slug" type="text" value="letter-a-sounds-demo" required /></label>
-              <label>Title<input name="title" type="text" value="Letter A Sounds" required /></label>
-              <label>Instructions<textarea name="instructions" rows="3">Listen and match the A sound.</textarea></label>
-              <label>Lesson Type
-                <select name="lessonType">
-                  <option>PHONICS</option>
-                  <option>HANDWRITING</option>
-                  <option>SIGHT_WORDS</option>
-                  <option>VOCABULARY</option>
-                </select>
-              </label>
-              <label>Difficulty
-                <select name="difficulty">
-                  <option>BEGINNER</option>
-                  <option>EASY</option>
-                  <option>MEDIUM</option>
-                  <option>HARD</option>
-                </select>
-              </label>
-              <label>Order Index<input name="orderIndex" type="number" value="1" min="1" required /></label>
-              <label>XP Reward<input name="xpReward" type="number" value="10" min="1" required /></label>
-              <label>Status
-                <select name="status">
-                  <option>PUBLISHED</option>
-                  <option>DRAFT</option>
-                  <option>ARCHIVED</option>
-                </select>
-              </label>
-              <button type="submit">Create Lesson</button>
-            </form>
-
-            <form id="exercise-form" class="card form-card">
-              <h3>Create Exercise</h3>
-              <label>Type
-                <select name="type">
-                  <option>PHONICS</option>
-                  <option>HANDWRITING</option>
-                  <option>SIGHT_WORDS</option>
-                  <option>VOCABULARY</option>
-                </select>
-              </label>
-              <label>Difficulty
-                <select name="difficulty">
-                  <option>BEGINNER</option>
-                  <option>EASY</option>
-                  <option>MEDIUM</option>
-                  <option>HARD</option>
-                </select>
-              </label>
-              <label>Order Index<input name="orderIndex" type="number" value="1" min="1" required /></label>
-              <label>Prompt<input name="prompt" type="text" value="Choose the correct sound for A" required /></label>
-              <label>Instructions<textarea name="instructions" rows="3">Tap the matching option.</textarea></label>
-              <label>Content JSON<textarea name="content" rows="5" required>{"question":"What sound does A make?","options":["a","b","c"]}</textarea></label>
-              <label>Correct Answer JSON<textarea name="correctAnswer" rows="4" required>{"answer":"a"}</textarea></label>
-              <button type="submit">Create Exercise</button>
-            </form>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-header">
-            <h2>5. Learner Flow</h2>
-            <p>Submit an exercise answer, complete the lesson, then pull progress and notifications.</p>
-          </div>
-          <div class="grid two-columns">
-            <form id="submit-form" class="card form-card">
-              <h3>Submit Exercise</h3>
-              <label>Answer JSON<textarea name="answer" rows="4" required>{"answer":"a"}</textarea></label>
-              <label>Time Taken Seconds<input name="timeTakenSeconds" type="number" value="12" min="1" required /></label>
-              <button type="submit">Submit Exercise</button>
-            </form>
-
-            <div class="card action-stack">
-              <h3>Follow-up Actions</h3>
-              <button id="complete-lesson-button">Complete Lesson</button>
-              <button id="load-progress-button">Load Progress</button>
-              <button id="load-badges-button">Load Badges</button>
-              <button id="load-notifications-button">Load Notifications</button>
-              <button id="run-weekly-summary-button">Run Weekly Summary Job</button>
+          <section class="workspace-block">
+            <div class="block-heading">
+              <h3>2. Admin Access</h3>
+              <p>Use the seeded admin account to create and manage curriculum content.</p>
             </div>
-          </div>
-        </section>
+            <form id="admin-login-form" class="surface-card form-card compact">
+              <h4>Sign In as Admin</h4>
+              <label>Email<input name="email" type="email" value="admin@example.com" required /></label>
+              <label>Password<input name="password" type="password" placeholder="Enter the Render admin password" required /></label>
+              <p class="helper-text">
+                Use the value saved in Render as <code>ADMIN_PASSWORD</code>.
+              </p>
+              <button type="submit">Login Admin</button>
+            </form>
+          </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <h2>State Snapshot</h2>
-            <p>Current tokens and resource IDs stored by the demo page.</p>
-          </div>
-          <pre id="state-viewer" class="state-viewer"></pre>
-        </section>
+          <section class="workspace-block">
+            <div class="block-heading">
+              <h3>3. Learner Profile</h3>
+              <p>Create a child profile under the currently active parent account.</p>
+            </div>
+            <form id="child-form" class="surface-card form-card wide">
+              <div class="grid two-columns">
+                <label>Username<input name="username" type="text" value="ali_reader_demo" required /></label>
+                <label>PIN<input name="pin" type="text" value="1234" required /></label>
+                <label>Display Name<input name="displayName" type="text" value="Ali" required /></label>
+                <label>Age<input name="age" type="number" value="6" min="3" max="12" required /></label>
+                <label>Avatar URL<input name="avatarUrl" type="url" value="https://example.com/avatar.png" /></label>
+                <label>Learning Level<input name="learningLevel" type="number" value="1" min="1" required /></label>
+              </div>
+              <button type="submit">Create Child Profile</button>
+            </form>
+          </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <h2>Response Console</h2>
-            <p>Latest responses from the backend appear here.</p>
-          </div>
-          <pre id="console-output" class="console-output"></pre>
+          <section class="workspace-block">
+            <div class="block-heading">
+              <h3>4. Curriculum Studio</h3>
+              <p>Create one unit, one lesson, and one exercise using the admin session.</p>
+            </div>
+            <div class="grid three-columns">
+              <form id="unit-form" class="surface-card form-card">
+                <h4>Create Unit</h4>
+                <label>Slug<input name="slug" type="text" value="phonics-level-1-demo" required /></label>
+                <label>Title<input name="title" type="text" value="Phonics Level 1" required /></label>
+                <label>Description<textarea name="description" rows="3">Introduction to phonics</textarea></label>
+                <label>Curriculum Level<input name="curriculumLevel" type="number" value="1" min="1" required /></label>
+                <label>Order Index<input name="orderIndex" type="number" value="1" min="1" required /></label>
+                <label class="checkbox"><input name="isPublished" type="checkbox" checked />Published</label>
+                <button type="submit">Create Unit</button>
+              </form>
+
+              <form id="lesson-form" class="surface-card form-card">
+                <h4>Create Lesson</h4>
+                <label>Slug<input name="slug" type="text" value="letter-a-sounds-demo" required /></label>
+                <label>Title<input name="title" type="text" value="Letter A Sounds" required /></label>
+                <label>Instructions<textarea name="instructions" rows="3">Listen and match the A sound.</textarea></label>
+                <label>Lesson Type
+                  <select name="lessonType">
+                    <option>PHONICS</option>
+                    <option>HANDWRITING</option>
+                    <option>SIGHT_WORDS</option>
+                    <option>VOCABULARY</option>
+                  </select>
+                </label>
+                <label>Difficulty
+                  <select name="difficulty">
+                    <option>BEGINNER</option>
+                    <option>EASY</option>
+                    <option>MEDIUM</option>
+                    <option>HARD</option>
+                  </select>
+                </label>
+                <label>Order Index<input name="orderIndex" type="number" value="1" min="1" required /></label>
+                <label>XP Reward<input name="xpReward" type="number" value="10" min="1" required /></label>
+                <label>Status
+                  <select name="status">
+                    <option>PUBLISHED</option>
+                    <option>DRAFT</option>
+                    <option>ARCHIVED</option>
+                  </select>
+                </label>
+                <button type="submit">Create Lesson</button>
+              </form>
+
+              <form id="exercise-form" class="surface-card form-card">
+                <h4>Create Exercise</h4>
+                <label>Type
+                  <select name="type">
+                    <option>PHONICS</option>
+                    <option>HANDWRITING</option>
+                    <option>SIGHT_WORDS</option>
+                    <option>VOCABULARY</option>
+                  </select>
+                </label>
+                <label>Difficulty
+                  <select name="difficulty">
+                    <option>BEGINNER</option>
+                    <option>EASY</option>
+                    <option>MEDIUM</option>
+                    <option>HARD</option>
+                  </select>
+                </label>
+                <label>Order Index<input name="orderIndex" type="number" value="1" min="1" required /></label>
+                <label>Prompt<input name="prompt" type="text" value="Choose the correct sound for A" required /></label>
+                <label>Instructions<textarea name="instructions" rows="3">Tap the matching option.</textarea></label>
+                <label>Content JSON<textarea name="content" rows="5" required>{"question":"What sound does A make?","options":["a","b","c"]}</textarea></label>
+                <label>Correct Answer JSON<textarea name="correctAnswer" rows="4" required>{"answer":"a"}</textarea></label>
+                <button type="submit">Create Exercise</button>
+              </form>
+            </div>
+          </section>
+
+          <section class="workspace-block">
+            <div class="block-heading">
+              <h3>5. Learning Progress</h3>
+              <p>Submit one exercise answer, complete the lesson, and then inspect progress data.</p>
+            </div>
+            <div class="grid two-columns">
+              <form id="submit-form" class="surface-card form-card">
+                <h4>Submit Exercise</h4>
+                <label>Answer JSON<textarea name="answer" rows="4" required>{"answer":"a"}</textarea></label>
+                <label>Time Taken Seconds<input name="timeTakenSeconds" type="number" value="12" min="1" required /></label>
+                <button type="submit">Submit Exercise</button>
+              </form>
+
+              <div class="surface-card action-stack">
+                <h4>Follow-up Actions</h4>
+                <button id="complete-lesson-button">Complete Lesson</button>
+                <button id="load-progress-button">Load Progress</button>
+                <button id="load-badges-button">Load Badges</button>
+                <button id="load-notifications-button">Load Notifications</button>
+                <button id="run-weekly-summary-button">Run Weekly Summary Job</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="workspace-grid">
+            <section class="surface-card">
+              <div class="block-heading compact-heading">
+                <h3>Session State</h3>
+                <p>Stored tokens and generated resource IDs.</p>
+              </div>
+              <pre id="state-viewer" class="console-box"></pre>
+            </section>
+
+            <section class="surface-card">
+              <div class="block-heading compact-heading">
+                <h3>Response Output</h3>
+                <p>Latest response from the backend.</p>
+              </div>
+              <pre id="console-output" class="console-box"></pre>
+            </section>
+          </section>
         </section>
       </main>
     </div>
