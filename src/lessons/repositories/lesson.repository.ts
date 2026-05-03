@@ -41,6 +41,21 @@ export class LessonRepository {
     });
   }
 
+  async findPreviousPublishedLessonInUnit(unitId: string, orderIndex: number) {
+    return this.prisma.lesson.findFirst({
+      where: {
+        unitId,
+        status: LessonStatus.PUBLISHED,
+        orderIndex: {
+          lt: orderIndex,
+        },
+      },
+      orderBy: {
+        orderIndex: 'desc',
+      },
+    });
+  }
+
   async list(currentUser: AuthUser, query: ListLessonsQueryDto) {
     const page = query.page ?? 1;
     const pageSize = query.page_size ?? 10;

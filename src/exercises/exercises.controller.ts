@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -16,6 +17,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
+import { ListExercisesQueryDto } from './dto/list-exercises.query.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
 import { ExercisesService } from './exercises.service';
 
@@ -31,8 +33,9 @@ export class ExercisesController {
   listExercises(
     @CurrentUser() currentUser: AuthUser,
     @Param('lessonId') lessonId: string,
+    @Query() query: ListExercisesQueryDto,
   ) {
-    return this.exercisesService.listExercises(currentUser, lessonId);
+    return this.exercisesService.listExercises(currentUser, lessonId, query);
   }
 
   @Roles(UserRole.ADMIN)

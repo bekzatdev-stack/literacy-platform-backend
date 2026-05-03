@@ -184,6 +184,19 @@ describe('Literacy Platform API (e2e)', () => {
     expect(parentChildrenResponse.body.items[0].displayName).toBe('Ali Junior');
 
     await request(app.getHttpServer())
+      .put(`/api/v1/parents/${parentId}`)
+      .set('Authorization', `Bearer ${parentToken}`)
+      .send({
+        firstName: 'Aruzhan Updated',
+        lastName: 'Bekova Updated',
+      })
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.firstName).toBe('Aruzhan Updated');
+        expect(response.body.lastName).toBe('Bekova Updated');
+      });
+
+    await request(app.getHttpServer())
       .delete(`/api/v1/children/${childId}`)
       .set('Authorization', `Bearer ${parentToken}`)
       .expect(200)
@@ -264,6 +277,55 @@ describe('Literacy Platform API (e2e)', () => {
 
     const lessonId = createLessonResponse.body.id as string;
 
+    const createSecondLessonResponse = await request(app.getHttpServer())
+      .post(`/api/v1/lessons/unit/${unitId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        slug: 'letter-b-sounds',
+        title: 'Letter B Sounds',
+        instructions: 'Listen and match the B sound.',
+        lessonType: 'PHONICS',
+        difficulty: 'BEGINNER',
+        orderIndex: 2,
+        xpReward: 15,
+        status: 'PUBLISHED',
+      })
+      .expect(201);
+
+    const secondLessonId = createSecondLessonResponse.body.id as string;
+
+    const createDraftUnitResponse = await request(app.getHttpServer())
+      .post('/api/v1/units')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        slug: 'phonics-level-2-draft',
+        title: 'Phonics - Level 2 Draft',
+        description: 'Draft unit not visible to parents.',
+        curriculumLevel: 2,
+        orderIndex: 1,
+        isPublished: false,
+      })
+      .expect(201);
+
+    const draftUnitId = createDraftUnitResponse.body.id as string;
+
+    const createDraftLessonResponse = await request(app.getHttpServer())
+      .post(`/api/v1/lessons/unit/${draftUnitId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        slug: 'hidden-draft-lesson',
+        title: 'Hidden Draft Lesson',
+        instructions: 'This lesson should stay hidden from parents.',
+        lessonType: 'PHONICS',
+        difficulty: 'BEGINNER',
+        orderIndex: 1,
+        xpReward: 10,
+        status: 'DRAFT',
+      })
+      .expect(201);
+
+    const draftLessonId = createDraftLessonResponse.body.id as string;
+
     const createExerciseResponse = await request(app.getHttpServer())
       .post(`/api/v1/lessons/${lessonId}/exercises`)
       .set('Authorization', `Bearer ${adminToken}`)
@@ -285,6 +347,48 @@ describe('Literacy Platform API (e2e)', () => {
 
     const exerciseId = createExerciseResponse.body.id as string;
 
+    const createSecondExerciseResponse = await request(app.getHttpServer())
+      .post(`/api/v1/lessons/${secondLessonId}/exercises`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        type: 'PHONICS',
+        difficulty: 'BEGINNER',
+        orderIndex: 1,
+        prompt: 'Match the letter B with its sound.',
+        instructions: 'Listen carefully before selecting the answer.',
+        content: {
+          question: 'Which sound matches the letter B?',
+          options: ['a', 'b', 'c'],
+        },
+        correctAnswer: {
+          correctOption: 'b',
+        },
+      })
+      .expect(201);
+
+    const secondExerciseId = createSecondExerciseResponse.body.id as string;
+
+    const createDraftExerciseResponse = await request(app.getHttpServer())
+      .post(`/api/v1/lessons/${draftLessonId}/exercises`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        type: 'PHONICS',
+        difficulty: 'BEGINNER',
+        orderIndex: 1,
+        prompt: 'Draft hidden prompt.',
+        instructions: 'Draft hidden instructions.',
+        content: {
+          question: 'Hidden question?',
+          options: ['x', 'y', 'z'],
+        },
+        correctAnswer: {
+          correctOption: 'x',
+        },
+      })
+      .expect(201);
+
+    const draftExerciseId = createDraftExerciseResponse.body.id as string;
+
     await request(app.getHttpServer())
       .put(`/api/v1/units/${unitId}`)
       .set('Authorization', `Bearer ${adminToken}`)
@@ -292,6 +396,59 @@ describe('Literacy Platform API (e2e)', () => {
         title: 'Phonics - Level 1 Updated',
       })
       .expect(200);
+
+    const exerciseListResponse = await request(app.getHttpServer())
+      .get(`/api/v1/lessons/${lessonId}/exercises`)
+      .query({ page: 1, page_size: 5 })
+      .set('Authorization', `Bearer ${parentToken}`)
+      .expect(200);
+
+    expect(exerciseListResponse.body.items).toHaveLength(1);
+    expect(exerciseListResponse.body.meta.total).toBe(1);
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/units/${draftUnitId}`)
+      .set('Authorization', `Bearer ${parentToken}`)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/lessons/${draftLessonId}`)
+      .set('Authorization', `Bearer ${parentToken}`)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .get(`/api/v1/lessons/${draftLessonId}/exercises`)
+      .set('Authorization', `Bearer ${parentToken}`)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/exercises/${draftExerciseId}/submit`)
+      .set('Authorization', `Bearer ${parentToken}`)
+      .send({
+        childId,
+        answer: {
+          correctOption: 'x',
+        },
+        timeTakenSeconds: 7,
+      })
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/exercises/${secondExerciseId}/submit`)
+      .set('Authorization', `Bearer ${parentToken}`)
+      .send({
+        childId,
+        answer: {
+          correctOption: 'b',
+        },
+        timeTakenSeconds: 15,
+      })
+      .expect(400)
+      .expect((response) => {
+        expect(response.body.message).toBe(
+          'Previous lesson must be completed before starting this lesson',
+        );
+      });
 
     const submitExerciseResponse = await request(app.getHttpServer())
       .post(`/api/v1/exercises/${exerciseId}/submit`)
@@ -333,10 +490,11 @@ describe('Literacy Platform API (e2e)', () => {
 
     const progressResponse = await request(app.getHttpServer())
       .get(`/api/v1/children/${childId}/progress`)
+      .query({ page: 1, page_size: 5 })
       .set('Authorization', `Bearer ${parentToken}`)
       .expect(200);
 
-    expect(progressResponse.body.lessonProgress).toEqual(
+    expect(progressResponse.body.lessonProgress.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           lessonId,
@@ -346,7 +504,9 @@ describe('Literacy Platform API (e2e)', () => {
         }),
       ]),
     );
-    expect(progressResponse.body.submissions).toHaveLength(1);
+    expect(progressResponse.body.lessonProgress.meta.total).toBe(1);
+    expect(progressResponse.body.submissions.items).toHaveLength(1);
+    expect(progressResponse.body.submissions.meta.total).toBe(1);
 
     const badgesResponse = await request(app.getHttpServer())
       .get(`/api/v1/children/${childId}/badges`)
@@ -385,9 +545,9 @@ describe('Literacy Platform API (e2e)', () => {
     expect(statsResponse.body.users.totalParents).toBe(1);
     expect(statsResponse.body.users.totalAdmins).toBe(1);
     expect(statsResponse.body.users.totalChildren).toBe(1);
-    expect(statsResponse.body.content.totalUnits).toBe(1);
-    expect(statsResponse.body.content.totalLessons).toBe(1);
-    expect(statsResponse.body.content.totalExercises).toBe(1);
+    expect(statsResponse.body.content.totalUnits).toBe(2);
+    expect(statsResponse.body.content.totalLessons).toBe(3);
+    expect(statsResponse.body.content.totalExercises).toBe(3);
     expect(statsResponse.body.learning.completedLessonRecords).toBe(1);
 
     const logsResponse = await request(app.getHttpServer())

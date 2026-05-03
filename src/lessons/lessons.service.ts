@@ -3,7 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AdminAction, ContentEntityType, LessonStatus } from '@prisma/client';
+import {
+  AdminAction,
+  ContentEntityType,
+  LessonStatus,
+  UserRole,
+} from '@prisma/client';
 import { AdminActivityService } from '../admin-activity/admin-activity.service';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { UnitsService } from '../units/units.service';
@@ -88,6 +93,19 @@ export class LessonsService {
     const lesson = await this.lessonRepository.findById(lessonId);
 
     if (!lesson) {
+      throw new NotFoundException('Lesson not found');
+    }
+
+    return lesson;
+  }
+
+  async getAccessibleLessonById(currentUser: AuthUser, lessonId: string) {
+    const lesson = await this.getLessonById(lessonId);
+
+    if (
+      currentUser.role === UserRole.PARENT &&
+      (lesson.status !== LessonStatus.PUBLISHED || !lesson.unit.isPublished)
+    ) {
       throw new NotFoundException('Lesson not found');
     }
 

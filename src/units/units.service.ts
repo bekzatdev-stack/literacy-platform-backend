@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AdminAction, ContentEntityType } from '@prisma/client';
+import { AdminAction, ContentEntityType, UserRole } from '@prisma/client';
 import { AdminActivityService } from '../admin-activity/admin-activity.service';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { CreateUnitDto } from './dto/create-unit.dto';
@@ -62,6 +62,16 @@ export class UnitsService {
     const unit = await this.unitRepository.findById(unitId);
 
     if (!unit) {
+      throw new NotFoundException('Unit not found');
+    }
+
+    return unit;
+  }
+
+  async getAccessibleUnitById(currentUser: AuthUser, unitId: string) {
+    const unit = await this.getUnitById(unitId);
+
+    if (currentUser.role === UserRole.PARENT && !unit.isPublished) {
       throw new NotFoundException('Unit not found');
     }
 

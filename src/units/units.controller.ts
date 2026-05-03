@@ -39,8 +39,8 @@ export class UnitsController {
 
   @Roles(UserRole.PARENT, UserRole.ADMIN)
   @Get(':id')
-  getUnitById(@Param('id') id: string) {
-    return this.unitsService.getUnitById(id);
+  getUnitById(@CurrentUser() currentUser: AuthUser, @Param('id') id: string) {
+    return this.unitsService.getAccessibleUnitById(currentUser, id);
   }
 
   @Roles(UserRole.ADMIN)

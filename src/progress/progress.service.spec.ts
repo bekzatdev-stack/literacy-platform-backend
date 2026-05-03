@@ -25,6 +25,7 @@ describe('ProgressService', () => {
 
     lessonRepository = {
       findByIdWithExercises: jest.fn(),
+      findPreviousPublishedLessonInUnit: jest.fn(),
     } as unknown as jest.Mocked<LessonRepository>;
 
     progressRepository = {
@@ -45,7 +46,9 @@ describe('ProgressService', () => {
       countPublishedLessonsInUnit: jest.fn(),
       countCompletedLessonsInUnitForChild: jest.fn(),
       getChildProgressHistory: jest.fn(),
-      getChildExerciseSubmissions: jest.fn(),
+      getPaginatedChildProgressHistory: jest.fn(),
+      countChildExerciseSubmissions: jest.fn(),
+      getPaginatedChildExerciseSubmissions: jest.fn(),
       getChildBadges: jest.fn(),
     } as unknown as jest.Mocked<ProgressRepository>;
 
@@ -65,6 +68,12 @@ describe('ProgressService', () => {
     const exercise = {
       id: 'exercise-1',
       lessonId: 'lesson-1',
+      lesson: {
+        status: 'PUBLISHED',
+        unit: {
+          isPublished: true,
+        },
+      },
       correctAnswer: {
         first: 'a',
         second: 2,
@@ -72,7 +81,13 @@ describe('ProgressService', () => {
     };
     const lesson = {
       id: 'lesson-1',
+      unitId: 'unit-1',
+      orderIndex: 1,
+      status: 'PUBLISHED',
       exercises: [{ id: 'exercise-1' }],
+      unit: {
+        isPublished: true,
+      },
     };
 
     childrenService.getAccessibleChildEntityOrThrow.mockResolvedValue(
@@ -85,6 +100,7 @@ describe('ProgressService', () => {
       isCorrect: true,
     } as never);
     lessonRepository.findByIdWithExercises.mockResolvedValue(lesson as never);
+    lessonRepository.findPreviousPublishedLessonInUnit.mockResolvedValue(null);
     progressRepository.countDistinctSubmittedExercises.mockResolvedValue(1);
     progressRepository.upsertLessonProgressInProgress.mockResolvedValue({
       status: LessonProgressStatus.IN_PROGRESS,
@@ -126,8 +142,15 @@ describe('ProgressService', () => {
     } as never);
     lessonRepository.findByIdWithExercises.mockResolvedValue({
       id: 'lesson-1',
+      unitId: 'unit-1',
+      orderIndex: 1,
+      status: 'PUBLISHED',
       exercises: [{ id: 'exercise-1' }, { id: 'exercise-2' }],
+      unit: {
+        isPublished: true,
+      },
     } as never);
+    lessonRepository.findPreviousPublishedLessonInUnit.mockResolvedValue(null);
     progressRepository.countDistinctSubmittedExercises.mockResolvedValue(1);
 
     await expect(
@@ -172,10 +195,13 @@ describe('ProgressService', () => {
       id: 'lesson-1',
       title: 'Letter A Sounds',
       unitId: 'unit-1',
+      orderIndex: 1,
+      status: 'PUBLISHED',
       xpReward: 10,
       exercises: [{ id: 'exercise-1' }],
       unit: {
         curriculumLevel: 1,
+        isPublished: true,
       },
     };
     const updatedChild = {
@@ -208,6 +234,7 @@ describe('ProgressService', () => {
       gamificationLevel: updatedChild.gamificationLevel,
     } as never);
     lessonRepository.findByIdWithExercises.mockResolvedValue(lesson as never);
+    lessonRepository.findPreviousPublishedLessonInUnit.mockResolvedValue(null);
     progressRepository.countDistinctSubmittedExercises.mockResolvedValue(1);
     progressRepository.findLessonProgress.mockResolvedValue(null);
     progressRepository.markLessonCompleted.mockResolvedValue({

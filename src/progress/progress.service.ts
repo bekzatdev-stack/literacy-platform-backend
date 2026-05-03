@@ -3,12 +3,19 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { LessonProgressStatus, NotificationType, Prisma } from '@prisma/client';
+import {
+  LessonProgressStatus,
+  LessonStatus,
+  NotificationType,
+  Prisma,
+  UserRole,
+} from '@prisma/client';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { ChildrenService } from '../children/children.service';
 import { ExerciseRepository } from '../exercises/repositories/exercise.repository';
 import { LessonRepository } from '../lessons/repositories/lesson.repository';
 import { CompleteLessonDto } from './dto/complete-lesson.dto';
+import { ListChildProgressQueryDto } from './dto/list-child-progress.query.dto';
 import { SubmitExerciseDto } from './dto/submit-exercise.dto';
 import { ProgressRepository } from './repositories/progress.repository';
 
@@ -32,9 +39,30 @@ export class ProgressService {
     );
     const exercise = await this.exerciseRepository.findById(exerciseId);
 
-    if (!exercise) {
+    if (
+      !exercise ||
+      !this.isExerciseAccessibleToCurrentUser(currentUser, exercise)
+    ) {
       throw new NotFoundException('Exercise not found');
     }
+
+    const now = new Date();
+
+    const lesson = await this.lessonRepository.findByIdWithExercises(
+      exercise.lessonId,
+    );
+
+    if (!lesson) {
+      throw new NotFoundException('Lesson not found');
+    }
+
+    this.ensureLessonAccessibleToCurrentUser(currentUser, lesson);
+
+    await this.ensureLessonCanBeStartedSequentially(child.id, {
+      id: lesson.id,
+      unitId: lesson.unitId,
+      orderIndex: lesson.orderIndex,
+    });
 
     const attemptNumber =
       (await this.progressRepository.countExerciseAttempts(
@@ -45,7 +73,6 @@ export class ProgressService {
       submitExerciseDto.answer,
       exercise.correctAnswer,
     );
-    const now = new Date();
 
     const submission = await this.progressRepository.createExerciseSubmission({
       answer: submitExerciseDto.answer as Prisma.InputJsonValue,
@@ -69,14 +96,6 @@ export class ProgressService {
         },
       },
     });
-
-    const lesson = await this.lessonRepository.findByIdWithExercises(
-      exercise.lessonId,
-    );
-
-    if (!lesson) {
-      throw new NotFoundException('Lesson not found');
-    }
 
     const completedExercisesCount =
       await this.progressRepository.countDistinctSubmittedExercises(
@@ -122,6 +141,14 @@ export class ProgressService {
     if (!lesson) {
       throw new NotFoundException('Lesson not found');
     }
+
+    this.ensureLessonAccessibleToCurrentUser(currentUser, lesson);
+
+    await this.ensureLessonCanBeStartedSequentially(child.id, {
+      id: lesson.id,
+      unitId: lesson.unitId,
+      orderIndex: lesson.orderIndex,
+    });
 
     if (lesson.exercises.length === 0) {
       throw new BadRequestException(
@@ -243,20 +270,59 @@ export class ProgressService {
     };
   }
 
-  async getChildProgressHistory(currentUser: AuthUser, childId: string) {
+  async getChildProgressHistory(
+    currentUser: AuthUser,
+    childId: string,
+    query: ListChildProgressQueryDto,
+  ) {
     const child = await this.childrenService.getAccessibleChildEntityOrThrow(
       currentUser,
       childId,
     );
-    const [lessonProgress, submissions] = await Promise.all([
+    const page = query.page ?? 1;
+    const pageSize = query.page_size ?? 10;
+    const skip = (page - 1) * pageSize;
+
+    const [
+      lessonProgressTotal,
+      lessonProgressItems,
+      submissionsTotal,
+      submissionItems,
+    ] = await Promise.all([
       this.progressRepository.getChildProgressHistory(child.id),
-      this.progressRepository.getChildExerciseSubmissions(child.id),
+      this.progressRepository.getPaginatedChildProgressHistory(
+        child.id,
+        skip,
+        pageSize,
+      ),
+      this.progressRepository.countChildExerciseSubmissions(child.id),
+      this.progressRepository.getPaginatedChildExerciseSubmissions(
+        child.id,
+        skip,
+        pageSize,
+      ),
     ]);
 
     return {
       child: this.childrenService.formatChildResponse(child),
-      lessonProgress,
-      submissions,
+      lessonProgress: {
+        items: lessonProgressItems,
+        meta: {
+          total: lessonProgressTotal,
+          page,
+          page_size: pageSize,
+          total_pages: Math.ceil(lessonProgressTotal / pageSize) || 1,
+        },
+      },
+      submissions: {
+        items: submissionItems,
+        meta: {
+          total: submissionsTotal,
+          page,
+          page_size: pageSize,
+          total_pages: Math.ceil(submissionsTotal / pageSize) || 1,
+        },
+      },
     };
   }
 
@@ -300,6 +366,77 @@ export class ProgressService {
 
   private calculateGamificationLevel(xpPoints: number) {
     return Math.floor(xpPoints / 50) + 1;
+  }
+
+  private ensureLessonAccessibleToCurrentUser(
+    currentUser: AuthUser,
+    lesson: {
+      status: LessonStatus;
+      unit: {
+        isPublished: boolean;
+      };
+    },
+  ) {
+    if (
+      currentUser.role === UserRole.PARENT &&
+      (lesson.status !== LessonStatus.PUBLISHED || !lesson.unit.isPublished)
+    ) {
+      throw new NotFoundException('Lesson not found');
+    }
+  }
+
+  private async ensureLessonCanBeStartedSequentially(
+    childId: string,
+    lesson: {
+      id: string;
+      unitId: string;
+      orderIndex: number;
+    },
+  ) {
+    const previousLesson =
+      await this.lessonRepository.findPreviousPublishedLessonInUnit(
+        lesson.unitId,
+        lesson.orderIndex,
+      );
+
+    if (!previousLesson) {
+      return;
+    }
+
+    const previousLessonProgress =
+      await this.progressRepository.findLessonProgress(
+        childId,
+        previousLesson.id,
+      );
+
+    if (previousLessonProgress?.status === LessonProgressStatus.COMPLETED) {
+      return;
+    }
+
+    throw new BadRequestException(
+      'Previous lesson must be completed before starting this lesson',
+    );
+  }
+
+  private isExerciseAccessibleToCurrentUser(
+    currentUser: AuthUser,
+    exercise: {
+      lesson: {
+        status: LessonStatus;
+        unit: {
+          isPublished: boolean;
+        };
+      };
+    },
+  ) {
+    if (currentUser.role !== UserRole.PARENT) {
+      return true;
+    }
+
+    return (
+      exercise.lesson.status === LessonStatus.PUBLISHED &&
+      exercise.lesson.unit.isPublished
+    );
   }
 
   private isAnswerCorrect(

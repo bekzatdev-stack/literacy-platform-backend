@@ -31,6 +31,23 @@ export class UserRepository {
     });
   }
 
+  async updateParent(
+    id: string,
+    data: Pick<Prisma.UserUpdateInput, 'email' | 'firstName' | 'lastName'>,
+  ) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+      include: {
+        children: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
+  }
+
   async createParent(data: {
     email: string;
     passwordHash: string;

@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -7,6 +15,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CompleteLessonDto } from './dto/complete-lesson.dto';
+import { ListChildProgressQueryDto } from './dto/list-child-progress.query.dto';
 import { SubmitExerciseDto } from './dto/submit-exercise.dto';
 import { ProgressService } from './progress.service';
 
@@ -48,8 +57,9 @@ export class ProgressController {
   getChildProgress(
     @CurrentUser() currentUser: AuthUser,
     @Param('id') id: string,
+    @Query() query: ListChildProgressQueryDto,
   ) {
-    return this.progressService.getChildProgressHistory(currentUser, id);
+    return this.progressService.getChildProgressHistory(currentUser, id, query);
   }
 
   @Get('children/:id/badges')

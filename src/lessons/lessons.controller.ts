@@ -39,8 +39,8 @@ export class LessonsController {
 
   @Roles(UserRole.PARENT, UserRole.ADMIN)
   @Get(':id')
-  getLessonById(@Param('id') id: string) {
-    return this.lessonsService.getLessonById(id);
+  getLessonById(@CurrentUser() currentUser: AuthUser, @Param('id') id: string) {
+    return this.lessonsService.getAccessibleLessonById(currentUser, id);
   }
 
   @Roles(UserRole.ADMIN)

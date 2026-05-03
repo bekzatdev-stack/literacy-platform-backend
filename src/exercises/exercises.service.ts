@@ -4,6 +4,7 @@ import { AdminActivityService } from '../admin-activity/admin-activity.service';
 import type { AuthUser } from '../auth/interfaces/auth-user.interface';
 import { LessonsService } from '../lessons/lessons.service';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
+import { ListExercisesQueryDto } from './dto/list-exercises.query.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
 import { ExerciseRepository } from './repositories/exercise.repository';
 
@@ -54,9 +55,13 @@ export class ExercisesService {
     return createdExercise;
   }
 
-  async listExercises(currentUser: AuthUser, lessonId: string) {
-    await this.lessonsService.getLessonById(lessonId);
-    return this.exerciseRepository.listByLesson(currentUser, lessonId);
+  async listExercises(
+    currentUser: AuthUser,
+    lessonId: string,
+    query: ListExercisesQueryDto,
+  ) {
+    await this.lessonsService.getAccessibleLessonById(currentUser, lessonId);
+    return this.exerciseRepository.listByLesson(currentUser, lessonId, query);
   }
 
   async updateExercise(

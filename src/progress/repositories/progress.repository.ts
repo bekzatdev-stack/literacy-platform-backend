@@ -172,10 +172,24 @@ export class ProgressRepository {
   }
 
   async getChildProgressHistory(childId: string) {
+    return this.prisma.lessonProgress.count({
+      where: {
+        childId,
+      },
+    });
+  }
+
+  async getPaginatedChildProgressHistory(
+    childId: string,
+    skip: number,
+    take: number,
+  ) {
     return this.prisma.lessonProgress.findMany({
       where: {
         childId,
       },
+      skip,
+      take,
       orderBy: {
         updatedAt: 'desc',
       },
@@ -189,11 +203,25 @@ export class ProgressRepository {
     });
   }
 
-  async getChildExerciseSubmissions(childId: string) {
+  async countChildExerciseSubmissions(childId: string) {
+    return this.prisma.exerciseSubmission.count({
+      where: {
+        childId,
+      },
+    });
+  }
+
+  async getPaginatedChildExerciseSubmissions(
+    childId: string,
+    skip: number,
+    take: number,
+  ) {
     return this.prisma.exerciseSubmission.findMany({
       where: {
         childId,
       },
+      skip,
+      take,
       orderBy: {
         submittedAt: 'desc',
       },
