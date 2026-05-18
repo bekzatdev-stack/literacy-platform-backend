@@ -16,245 +16,419 @@
             <h1>Family Literacy Hub</h1>
           </div>
         </div>
+
         <nav class="topbar-links">
-          <a href="#workspace">Demo Workspace</a>
-          <a href="/api/docs" target="_blank" rel="noreferrer">API Docs</a>
+          <a href="#auth-section">Sign In</a>
+          <a href="#parent-dashboard">Parent Dashboard</a>
+          <a href="#admin-studio">Admin Studio</a>
+          <a href="/api/docs" target="_blank" rel="noreferrer">Swagger</a>
         </nav>
       </header>
 
       <main>
         <section class="hero">
           <div class="hero-copy">
-            <p class="eyebrow">Reading journeys for children, visibility for parents, control for admins</p>
-            <h2>A simple frontend for showing the full learning flow.</h2>
+            <p class="eyebrow">One frontend connected to the same NestJS backend and PostgreSQL database</p>
+            <h2>Track reading progress, manage content, and demonstrate the full platform flow.</h2>
             <p class="hero-text">
-              This page demonstrates how the backend powers registration, child profiles,
-              curriculum creation, lesson completion, rewards, and notifications in one place.
+              This frontend is served directly by the backend and talks to the live
+              REST API under <code>/api/v1</code>. It supports parent login,
+              child profile management, curriculum browsing, learner progress, admin
+              content management, statistics, logs, and scheduled jobs.
             </p>
             <div class="hero-actions">
-              <a class="primary-link" href="#workspace">Open Demo Workspace</a>
-              <button id="health-check" class="secondary-button">Check API Health</button>
+              <button id="health-check" class="primary-button">Check API Health</button>
+              <button id="load-leaderboard-button" class="secondary-button">Load Leaderboard</button>
             </div>
           </div>
 
           <aside class="hero-panel">
             <div class="metric-card">
-              <span class="metric-label">API Base</span>
-              <strong>/api/v1</strong>
+              <span class="metric-label">API status</span>
+              <strong id="api-status">Unknown</strong>
             </div>
             <div class="metric-card">
-              <span class="metric-label">Current Session</span>
+              <span class="metric-label">Active session</span>
               <strong id="auth-state">No token selected</strong>
             </div>
             <div class="metric-card">
-              <span class="metric-label">Interactive Docs</span>
-              <strong>/api/docs</strong>
+              <span class="metric-label">Selected resources</span>
+              <strong id="selected-summary">None selected yet</strong>
             </div>
           </aside>
         </section>
 
         <section class="overview-grid">
           <article class="overview-card warm">
-            <h3>For Parents</h3>
-            <p>Create learner profiles, follow progress, and receive milestone notifications.</p>
+            <h3>Parent Experience</h3>
+            <p>Create child profiles, browse the curriculum, inspect progress, and read notifications.</p>
           </article>
           <article class="overview-card cool">
-            <h3>For Children</h3>
-            <p>Move through lessons, earn XP, build streaks, and unlock badges.</p>
+            <h3>Learner Flow</h3>
+            <p>Submit exercise answers, complete lessons, earn XP, update streaks, and unlock badges.</p>
           </article>
           <article class="overview-card sand">
-            <h3>For Admins</h3>
-            <p>Manage curriculum content, publish learning materials, and monitor platform activity.</p>
+            <h3>Admin Operations</h3>
+            <p>Create units, lessons, exercises, check platform stats, and review audit logs.</p>
           </article>
         </section>
 
-        <section id="workspace" class="workspace">
+        <section id="auth-section" class="section-shell">
           <div class="section-heading">
-            <p class="eyebrow">Demo Workspace</p>
-            <h2>Run the backend flow through a cleaner frontend</h2>
+            <p class="eyebrow">Authentication</p>
+            <h2>Sign in as parent or admin</h2>
             <p>
-              The blocks below follow the same real scenario that is demonstrated in Swagger:
-              parent auth, child creation, admin content setup, learner progress, and platform updates.
+              Parent accounts are registered directly. Admin accounts are seeded by
+              the backend and used for curriculum management and reporting.
             </p>
           </div>
 
-          <section class="workspace-block">
-            <div class="block-heading">
-              <h3>1. Parent Access</h3>
-              <p>Register a new parent account or log in to an existing one.</p>
-            </div>
-            <div class="grid two-columns">
-              <form id="parent-register-form" class="surface-card form-card">
-                <h4>Create Parent Account</h4>
-                <label>Email<input name="email" type="email" value="parent.demo@example.com" required /></label>
-                <label>Password<input name="password" type="password" value="SecurePass123" required /></label>
-                <label>First Name<input name="firstName" type="text" value="Aruzhan" required /></label>
-                <label>Last Name<input name="lastName" type="text" value="Bekova" required /></label>
-                <button type="submit">Register Parent</button>
-              </form>
+          <div class="grid auth-grid">
+            <form id="parent-register-form" class="surface-card form-card">
+              <h3>Create Parent Account</h3>
+              <label>Email<input name="email" type="email" value="parent.demo@example.com" required /></label>
+              <label>Password<input name="password" type="password" value="SecurePass123" required /></label>
+              <label>First Name<input name="firstName" type="text" value="Aruzhan" required /></label>
+              <label>Last Name<input name="lastName" type="text" value="Bekova" required /></label>
+              <button type="submit">Register Parent</button>
+            </form>
 
-              <form id="parent-login-form" class="surface-card form-card">
-                <h4>Sign In as Parent</h4>
-                <label>Email<input name="email" type="email" value="parent.demo@example.com" required /></label>
-                <label>Password<input name="password" type="password" value="SecurePass123" required /></label>
+            <form id="parent-login-form" class="surface-card form-card">
+              <h3>Parent Login</h3>
+              <label>Email<input name="email" type="email" value="parent.demo@example.com" required /></label>
+              <label>Password<input name="password" type="password" value="SecurePass123" required /></label>
+              <div class="button-row">
                 <button type="submit">Login Parent</button>
-              </form>
-            </div>
-          </section>
+                <button id="logout-parent-button" type="button" class="secondary-button">Logout Parent</button>
+              </div>
+            </form>
 
-          <section class="workspace-block">
-            <div class="block-heading">
-              <h3>2. Admin Access</h3>
-              <p>Use the seeded admin account to create and manage curriculum content.</p>
-            </div>
-            <form id="admin-login-form" class="surface-card form-card compact">
-              <h4>Sign In as Admin</h4>
+            <form id="admin-login-form" class="surface-card form-card">
+              <h3>Admin Login</h3>
               <label>Email<input name="email" type="email" value="admin@example.com" required /></label>
-              <label>Password<input name="password" type="password" placeholder="Enter the Render admin password" required /></label>
-              <p class="helper-text">
-                Use the value saved in Render as <code>ADMIN_PASSWORD</code>.
-              </p>
-              <button type="submit">Login Admin</button>
+              <label>Password<input name="password" type="password" placeholder="Enter admin password" required /></label>
+              <div class="button-row">
+                <button type="submit">Login Admin</button>
+                <button id="logout-admin-button" type="button" class="secondary-button">Logout Admin</button>
+              </div>
             </form>
-          </section>
+          </div>
+        </section>
 
-          <section class="workspace-block">
-            <div class="block-heading">
-              <h3>3. Learner Profile</h3>
-              <p>Create a child profile under the currently active parent account.</p>
-            </div>
-            <form id="child-form" class="surface-card form-card wide">
-              <div class="grid two-columns">
-                <label>Username<input name="username" type="text" value="ali_reader_demo" required /></label>
-                <label>PIN<input name="pin" type="text" value="1234" required /></label>
-                <label>Display Name<input name="displayName" type="text" value="Ali" required /></label>
-                <label>Age<input name="age" type="number" value="6" min="3" max="12" required /></label>
-                <label>Avatar URL<input name="avatarUrl" type="url" value="https://example.com/avatar.png" /></label>
-                <label>Learning Level<input name="learningLevel" type="number" value="1" min="1" required /></label>
+        <section class="dashboard-layout">
+          <aside class="dashboard-sidebar">
+            <section class="surface-card summary-card">
+              <div class="card-header">
+                <h3>Session Overview</h3>
+                <p>Current state of stored tokens and selected entities.</p>
               </div>
-              <button type="submit">Create Child Profile</button>
-            </form>
-          </section>
-
-          <section class="workspace-block">
-            <div class="block-heading">
-              <h3>4. Curriculum Studio</h3>
-              <p>Create one unit, one lesson, and one exercise using the admin session.</p>
-            </div>
-            <div class="grid three-columns">
-              <form id="unit-form" class="surface-card form-card">
-                <h4>Create Unit</h4>
-                <label>Slug<input name="slug" type="text" value="phonics-level-1-demo" required /></label>
-                <label>Title<input name="title" type="text" value="Phonics Level 1" required /></label>
-                <label>Description<textarea name="description" rows="3">Introduction to phonics</textarea></label>
-                <label>Curriculum Level<input name="curriculumLevel" type="number" value="1" min="1" required /></label>
-                <label>Order Index<input name="orderIndex" type="number" value="1" min="1" required /></label>
-                <label class="checkbox"><input name="isPublished" type="checkbox" checked />Published</label>
-                <button type="submit">Create Unit</button>
-              </form>
-
-              <form id="lesson-form" class="surface-card form-card">
-                <h4>Create Lesson</h4>
-                <label>Slug<input name="slug" type="text" value="letter-a-sounds-demo" required /></label>
-                <label>Title<input name="title" type="text" value="Letter A Sounds" required /></label>
-                <label>Instructions<textarea name="instructions" rows="3">Listen and match the A sound.</textarea></label>
-                <label>Lesson Type
-                  <select name="lessonType">
-                    <option>PHONICS</option>
-                    <option>HANDWRITING</option>
-                    <option>SIGHT_WORDS</option>
-                    <option>VOCABULARY</option>
-                  </select>
-                </label>
-                <label>Difficulty
-                  <select name="difficulty">
-                    <option>BEGINNER</option>
-                    <option>EASY</option>
-                    <option>MEDIUM</option>
-                    <option>HARD</option>
-                  </select>
-                </label>
-                <label>Order Index<input name="orderIndex" type="number" value="1" min="1" required /></label>
-                <label>XP Reward<input name="xpReward" type="number" value="10" min="1" required /></label>
-                <label>Status
-                  <select name="status">
-                    <option>PUBLISHED</option>
-                    <option>DRAFT</option>
-                    <option>ARCHIVED</option>
-                  </select>
-                </label>
-                <button type="submit">Create Lesson</button>
-              </form>
-
-              <form id="exercise-form" class="surface-card form-card">
-                <h4>Create Exercise</h4>
-                <label>Type
-                  <select name="type">
-                    <option>PHONICS</option>
-                    <option>HANDWRITING</option>
-                    <option>SIGHT_WORDS</option>
-                    <option>VOCABULARY</option>
-                  </select>
-                </label>
-                <label>Difficulty
-                  <select name="difficulty">
-                    <option>BEGINNER</option>
-                    <option>EASY</option>
-                    <option>MEDIUM</option>
-                    <option>HARD</option>
-                  </select>
-                </label>
-                <label>Order Index<input name="orderIndex" type="number" value="1" min="1" required /></label>
-                <label>Prompt<input name="prompt" type="text" value="Choose the correct sound for A" required /></label>
-                <label>Instructions<textarea name="instructions" rows="3">Tap the matching option.</textarea></label>
-                <label>Content JSON<textarea name="content" rows="5" required>{"question":"What sound does A make?","options":["a","b","c"]}</textarea></label>
-                <label>Correct Answer JSON<textarea name="correctAnswer" rows="4" required>{"answer":"a"}</textarea></label>
-                <button type="submit">Create Exercise</button>
-              </form>
-            </div>
-          </section>
-
-          <section class="workspace-block">
-            <div class="block-heading">
-              <h3>5. Learning Progress</h3>
-              <p>Submit one exercise answer, complete the lesson, and then inspect progress data.</p>
-            </div>
-            <div class="grid two-columns">
-              <form id="submit-form" class="surface-card form-card">
-                <h4>Submit Exercise</h4>
-                <label>Answer JSON<textarea name="answer" rows="4" required>{"answer":"a"}</textarea></label>
-                <label>Time Taken Seconds<input name="timeTakenSeconds" type="number" value="12" min="1" required /></label>
-                <button type="submit">Submit Exercise</button>
-              </form>
-
-              <div class="surface-card action-stack">
-                <h4>Follow-up Actions</h4>
-                <button id="complete-lesson-button">Complete Lesson</button>
-                <button id="load-progress-button">Load Progress</button>
-                <button id="load-badges-button">Load Badges</button>
-                <button id="load-notifications-button">Load Notifications</button>
-                <button id="run-weekly-summary-button">Run Weekly Summary Job</button>
+              <div class="summary-row">
+                <span>Parent token</span>
+                <strong id="parent-token-status">Missing</strong>
               </div>
-            </div>
-          </section>
-
-          <section class="workspace-grid">
-            <section class="surface-card">
-              <div class="block-heading compact-heading">
-                <h3>Session State</h3>
-                <p>Stored tokens and generated resource IDs.</p>
+              <div class="summary-row">
+                <span>Admin token</span>
+                <strong id="admin-token-status">Missing</strong>
               </div>
-              <pre id="state-viewer" class="console-box"></pre>
+              <div class="summary-row">
+                <span>Parent ID</span>
+                <strong id="parent-id-status">—</strong>
+              </div>
+              <div class="summary-row">
+                <span>Child ID</span>
+                <strong id="child-id-status">—</strong>
+              </div>
+              <div class="summary-row">
+                <span>Unit ID</span>
+                <strong id="unit-id-status">—</strong>
+              </div>
+              <div class="summary-row">
+                <span>Lesson ID</span>
+                <strong id="lesson-id-status">—</strong>
+              </div>
+              <div class="summary-row">
+                <span>Exercise ID</span>
+                <strong id="exercise-id-status">—</strong>
+              </div>
             </section>
 
             <section class="surface-card">
-              <div class="block-heading compact-heading">
-                <h3>Response Output</h3>
-                <p>Latest response from the backend.</p>
+              <div class="card-header">
+                <h3>Leaderboard</h3>
+                <p>Privacy-safe ranking by child display name.</p>
+              </div>
+              <div class="button-row">
+                <button id="load-leaderboard-sidebar-button" type="button">Refresh</button>
+              </div>
+              <div id="leaderboard-list" class="stack-list empty-state">
+                Load leaderboard data to see active learners.
+              </div>
+            </section>
+
+            <section class="surface-card">
+              <div class="card-header">
+                <h3>Latest Response</h3>
+                <p>Useful for debugging and demo explanations.</p>
               </div>
               <pre id="console-output" class="console-box"></pre>
             </section>
-          </section>
+          </aside>
+
+          <div class="dashboard-main">
+            <section id="parent-dashboard" class="section-shell">
+              <div class="section-heading">
+                <p class="eyebrow">Parent Dashboard</p>
+                <h2>Manage profile, children, curriculum, progress, and notifications</h2>
+                <p>
+                  This area uses the parent token to work only with the parent's own
+                  children and published curriculum content.
+                </p>
+              </div>
+
+              <div class="grid two-columns">
+                <section class="surface-card">
+                  <div class="card-header">
+                    <h3>Parent Profile</h3>
+                    <p>Load and update the currently authenticated parent profile.</p>
+                  </div>
+                  <div class="button-row">
+                    <button id="load-parent-profile-button" type="button">Load Profile</button>
+                    <button id="load-children-button" type="button" class="secondary-button">Load Children</button>
+                  </div>
+                  <form id="parent-profile-form" class="form-card inline-form">
+                    <label>Email<input name="email" type="email" placeholder="Updated parent email" /></label>
+                    <label>First Name<input name="firstName" type="text" placeholder="Updated first name" /></label>
+                    <label>Last Name<input name="lastName" type="text" placeholder="Updated last name" /></label>
+                    <button type="submit">Update Parent</button>
+                  </form>
+                  <div id="parent-summary" class="detail-card empty-state">
+                    Login as parent and load the profile to see account details here.
+                  </div>
+                </section>
+
+                <section class="surface-card">
+                  <div class="card-header">
+                    <h3>Create Child Profile</h3>
+                    <p>Each child is linked to the currently authenticated parent.</p>
+                  </div>
+                  <form id="child-form" class="form-card">
+                    <label>Username<input name="username" type="text" value="ali_reader_demo" required /></label>
+                    <label>PIN<input name="pin" type="text" value="1234" required /></label>
+                    <label>Display Name<input name="displayName" type="text" value="Ali" required /></label>
+                    <label>Age<input name="age" type="number" value="6" min="3" max="12" required /></label>
+                    <label>Avatar URL<input name="avatarUrl" type="url" value="https://example.com/avatar.png" /></label>
+                    <label>Learning Level<input name="learningLevel" type="number" value="1" min="1" required /></label>
+                    <button type="submit">Create Child</button>
+                  </form>
+                </section>
+              </div>
+
+              <section class="surface-card">
+                <div class="card-header">
+                  <h3>Children</h3>
+                  <p>Select one child to load progress, badges, and learner actions.</p>
+                </div>
+                <div id="children-list" class="resource-grid empty-state">
+                  No child data loaded yet.
+                </div>
+              </section>
+
+              <div class="grid two-columns">
+                <section class="surface-card">
+                  <div class="card-header">
+                    <h3>Curriculum Explorer</h3>
+                    <p>Parents can see only published units, lessons, and exercises.</p>
+                  </div>
+                  <div class="button-row">
+                    <button id="load-units-button" type="button">Load Units</button>
+                    <button id="load-lessons-button" type="button" class="secondary-button">Load Lessons</button>
+                    <button id="load-exercises-button" type="button" class="secondary-button">Load Exercises</button>
+                  </div>
+                  <div class="grid three-columns compact-grid">
+                    <div>
+                      <h4 class="mini-heading">Units</h4>
+                      <div id="units-list" class="resource-grid empty-state">
+                        Load units to browse the curriculum.
+                      </div>
+                    </div>
+                    <div>
+                      <h4 class="mini-heading">Lessons</h4>
+                      <div id="lessons-list" class="resource-grid empty-state">
+                        Select a unit and load its lessons.
+                      </div>
+                    </div>
+                    <div>
+                      <h4 class="mini-heading">Exercises</h4>
+                      <div id="exercises-list" class="resource-grid empty-state">
+                        Select a lesson and load its exercises.
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="surface-card">
+                  <div class="card-header">
+                    <h3>Learner Actions</h3>
+                    <p>Submit answers, complete lessons, and inspect the learner state.</p>
+                  </div>
+                  <form id="submit-form" class="form-card">
+                    <label>Answer JSON<textarea name="answer" rows="4" required>{"answer":"a"}</textarea></label>
+                    <label>Time Taken Seconds<input name="timeTakenSeconds" type="number" value="12" min="1" required /></label>
+                    <button type="submit">Submit Exercise</button>
+                  </form>
+                  <div class="button-row">
+                    <button id="complete-lesson-button" type="button">Complete Lesson</button>
+                    <button id="load-progress-button" type="button" class="secondary-button">Load Progress</button>
+                    <button id="load-badges-button" type="button" class="secondary-button">Load Badges</button>
+                    <button id="load-notifications-button" type="button" class="secondary-button">Load Notifications</button>
+                  </div>
+                  <div id="progress-summary" class="detail-card empty-state">
+                    Select a child, lesson, and exercise to start learner actions.
+                  </div>
+                  <div id="badges-list" class="resource-grid compact-grid empty-state">
+                    Badge data will appear here.
+                  </div>
+                </section>
+              </div>
+
+              <section class="surface-card">
+                <div class="card-header">
+                  <h3>Notifications</h3>
+                  <p>Milestones, streak reminders, and weekly summaries for the parent.</p>
+                </div>
+                <div id="notifications-list" class="resource-grid empty-state">
+                  Load notifications to see parent updates.
+                </div>
+              </section>
+            </section>
+
+            <section id="admin-studio" class="section-shell">
+              <div class="section-heading">
+                <p class="eyebrow">Admin Studio</p>
+                <h2>Create content, view stats, inspect logs, and run async jobs</h2>
+                <p>
+                  This area uses the admin token and exposes the content-management
+                  side of the platform.
+                </p>
+              </div>
+
+              <div class="grid two-columns">
+                <section class="surface-card">
+                  <div class="card-header">
+                    <h3>Create Unit</h3>
+                    <p>Units are the top level of the curriculum hierarchy.</p>
+                  </div>
+                  <form id="unit-form" class="form-card">
+                    <label>Slug<input name="slug" type="text" value="phonics-level-1-demo" required /></label>
+                    <label>Title<input name="title" type="text" value="Phonics Level 1" required /></label>
+                    <label>Description<textarea name="description" rows="3">Introduction to phonics</textarea></label>
+                    <label>Curriculum Level<input name="curriculumLevel" type="number" value="1" min="1" required /></label>
+                    <label>Order Index<input name="orderIndex" type="number" value="1" min="1" required /></label>
+                    <label class="checkbox"><input name="isPublished" type="checkbox" checked />Published</label>
+                    <button type="submit">Create Unit</button>
+                  </form>
+                </section>
+
+                <section class="surface-card">
+                  <div class="card-header">
+                    <h3>Create Lesson</h3>
+                    <p>Lessons belong to a selected unit and carry XP rewards.</p>
+                  </div>
+                  <form id="lesson-form" class="form-card">
+                    <label>Slug<input name="slug" type="text" value="letter-a-sounds-demo" required /></label>
+                    <label>Title<input name="title" type="text" value="Letter A Sounds" required /></label>
+                    <label>Instructions<textarea name="instructions" rows="3">Listen and match the A sound.</textarea></label>
+                    <label>Lesson Type
+                      <select name="lessonType">
+                        <option>PHONICS</option>
+                        <option>HANDWRITING</option>
+                        <option>SIGHT_WORDS</option>
+                        <option>VOCABULARY</option>
+                      </select>
+                    </label>
+                    <label>Difficulty
+                      <select name="difficulty">
+                        <option>BEGINNER</option>
+                        <option>EASY</option>
+                        <option>MEDIUM</option>
+                        <option>HARD</option>
+                      </select>
+                    </label>
+                    <label>Order Index<input name="orderIndex" type="number" value="1" min="1" required /></label>
+                    <label>XP Reward<input name="xpReward" type="number" value="10" min="1" required /></label>
+                    <label>Status
+                      <select name="status">
+                        <option>PUBLISHED</option>
+                        <option>DRAFT</option>
+                        <option>ARCHIVED</option>
+                      </select>
+                    </label>
+                    <button type="submit">Create Lesson</button>
+                  </form>
+                </section>
+              </div>
+
+              <div class="grid two-columns">
+                <section class="surface-card">
+                  <div class="card-header">
+                    <h3>Create Exercise</h3>
+                    <p>Exercises belong to a selected lesson and store content in JSON.</p>
+                  </div>
+                  <form id="exercise-form" class="form-card">
+                    <label>Type
+                      <select name="type">
+                        <option>PHONICS</option>
+                        <option>HANDWRITING</option>
+                        <option>SIGHT_WORDS</option>
+                        <option>VOCABULARY</option>
+                      </select>
+                    </label>
+                    <label>Difficulty
+                      <select name="difficulty">
+                        <option>BEGINNER</option>
+                        <option>EASY</option>
+                        <option>MEDIUM</option>
+                        <option>HARD</option>
+                      </select>
+                    </label>
+                    <label>Order Index<input name="orderIndex" type="number" value="1" min="1" required /></label>
+                    <label>Prompt<input name="prompt" type="text" value="Choose the correct sound for A" required /></label>
+                    <label>Instructions<textarea name="instructions" rows="3">Tap the matching option.</textarea></label>
+                    <label>Content JSON<textarea name="content" rows="5" required>{"question":"What sound does A make?","options":["a","b","c"]}</textarea></label>
+                    <label>Correct Answer JSON<textarea name="correctAnswer" rows="4" required>{"answer":"a"}</textarea></label>
+                    <button type="submit">Create Exercise</button>
+                  </form>
+                </section>
+
+                <section class="surface-card">
+                  <div class="card-header">
+                    <h3>Admin Actions</h3>
+                    <p>Inspect system metrics and manually trigger scheduled jobs.</p>
+                  </div>
+                  <div class="button-column">
+                    <button id="load-admin-stats-button" type="button">Load Admin Stats</button>
+                    <button id="load-admin-logs-button" type="button" class="secondary-button">Load Admin Logs</button>
+                    <button id="run-daily-streak-button" type="button" class="secondary-button">Run Daily Streak Check</button>
+                    <button id="run-streak-reset-button" type="button" class="secondary-button">Run Streak Reset</button>
+                    <button id="run-weekly-summary-button" type="button" class="secondary-button">Run Weekly Summary Job</button>
+                  </div>
+                  <div id="admin-stats-view" class="detail-card empty-state">
+                    Admin stats will appear here.
+                  </div>
+                </section>
+              </div>
+
+              <section class="surface-card">
+                <div class="card-header">
+                  <h3>Admin Activity Logs</h3>
+                  <p>Audit trail for content operations such as create, update, publish, and delete.</p>
+                </div>
+                <div id="admin-logs-view" class="resource-grid empty-state">
+                  Load admin logs to see recent content activity.
+                </div>
+              </section>
+            </section>
+          </div>
         </section>
       </main>
     </div>
